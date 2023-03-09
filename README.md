@@ -1,1 +1,4 @@
-# Study_OpenGL_ES
+## 🐳 Study OpenGL ES
+
+📎 **블로그 바로 가기**
+[`https://choi-dan-di.github.io/`](https://choi-dan-di.github.io/)
