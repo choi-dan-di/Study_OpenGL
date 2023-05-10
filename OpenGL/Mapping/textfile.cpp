@@ -60,8 +60,12 @@ int textFileWrite(const char* fn, const char* s) {
 }
 
 // 내가 만든 거 (튜토리얼에서 코드 가져옴)
-bool loadOBJ(const char* path, vector<vec3>& out_vertices, vector<vec2> out_uvs, vector<vec3> out_normals)
-{
+bool loadOBJ(
+	const char* path, 
+	vector<vec3>& out_vertices, 
+	vector<vec2>& out_uvs, 
+	vector<vec3>& out_normals
+) {
 	printf("Loading OBJ file %s...\n", path);
 
 	std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
@@ -99,6 +103,7 @@ bool loadOBJ(const char* path, vector<vec3>& out_vertices, vector<vec2> out_uvs,
 			temp_uvs.push_back(uv);
 		}
 		else if (strcmp(lineHeader, "vn") == 0) {
+			cout << endl;
 			glm::vec3 normal;
 			fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
 			temp_normals.push_back(normal);
@@ -143,11 +148,11 @@ bool loadOBJ(const char* path, vector<vec3>& out_vertices, vector<vec2> out_uvs,
 		glm::vec2 uv = temp_uvs[uvIndex - 1];
 		glm::vec3 normal = temp_normals[normalIndex - 1];
 
+
 		// Put the attributes in buffers
 		out_vertices.push_back(vertex);
 		out_uvs.push_back(uv);
 		out_normals.push_back(normal);
-
 	}
 	fclose(file);
 	return true;

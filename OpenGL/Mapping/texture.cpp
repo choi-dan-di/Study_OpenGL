@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <iostream>
+using namespace std;
 
 #include <GL/glew.h>
 
@@ -90,7 +92,7 @@ GLuint loadBMP_custom(const char* imagepath) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	// ... which requires mipmaps. Generate them automatically.
 	glGenerateMipmap(GL_TEXTURE_2D);
-
+	printf("Success to Road Image!\n");
 	// Return the ID of the texture we just created
 	return textureID;
 }
@@ -142,7 +144,7 @@ GLuint loadDDS(const char* imagepath) {
 	/* verify the type of file */
 	char filecode[4];
 	fread(filecode, 1, 4, fp);
-	if (strncmp(filecode, "png", 4) != 0) {
+	if (strncmp(filecode, "DDS ", 4) != 0) {
 		fclose(fp);
 		return 0;
 	}
