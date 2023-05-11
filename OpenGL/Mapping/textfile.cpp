@@ -157,3 +157,37 @@ bool loadOBJ(
 	fclose(file);
 	return true;
 }
+
+void getTangent(vector<vec3>& vertices, vector<vec2>& uvs, vector<vec3>& normals, vector<vec3>& tangents)
+{
+	// 무조건 3의 배수(폴리곤 메시)라서 에러날 일이 없음
+	for (unsigned int i = 0; i < vertices.size(); i += 3)
+	{
+		// 이름 줄이기
+		vec3& v0 = vertices[i + 0];
+		vec3& v1 = vertices[i + 1];
+		vec3& v2 = vertices[i + 2];
+
+		vec2& uv0 = uvs[i + 0];
+		vec2& uv1 = uvs[i + 1];
+		vec2& uv2 = uvs[i + 2];
+
+		// 탄젠트를 구하려면 노멀은 그대로 사용하고
+		// 그람-슈미트 사용해야하나..?
+		// 정점 돌면서 삼각형을 만드는 두 벡터 구하기
+		vec3 deltaPos1 = v1 - v0;
+		vec3 deltaPos2 = v2 - v0;
+
+		// UV
+		vec2 deltaUV1 = uv1 - uv0;
+		vec2 deltaUV2 = uv2 - uv0;
+
+		float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
+		vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
+
+		// 세 정점의 탄젠트 벡터는 모두 동일
+		tangents.push_back(tangent);
+		tangents.push_back(tangent);
+		tangents.push_back(tangent);
+	}
+}

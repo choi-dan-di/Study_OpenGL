@@ -122,9 +122,14 @@ int main()
 
 	// 텍스처 로드
 	// GLuint Texture = loadDDS("texture/tree_texture.DDS");
-	GLuint Texture = loadBMP_custom("texture/tree_default_Albedo.bmp");
+	GLuint Texture = loadBMP_stb("texture/tree_default_Albedo.bmp");
 	// 프로그램에 전달할 ID 설정
-	GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
+	GLuint TextureID = glGetUniformLocation(programID, "colorMap");
+	
+	// 노멀맵 추가
+	GLuint NormalTexture = loadBMP_stb("texture/tree_default_Normal.bmp");
+	GLuint NormalTextureID = glGetUniformLocation(programID, "normalMap");
+
 
 	// .obj 파일 불러오기
 	vector<vec3> vertices;
@@ -149,6 +154,15 @@ int main()
 	glGenBuffers(1, &normalbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
 	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(vec3), &normals[0], GL_STATIC_DRAW);
+
+	// 탄젠트 공간 노멀 매핑 위해서 탄젠트 정의
+	vector<vec3> tangents;
+	getTangent(vertices, uvs, normals, tangents);
+	// Tangent Buffer 생성
+	GLuint tangentbuffer;
+	glGenBuffers(1, &tangentbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
+	glBufferData(GL_ARRAY_BUFFER, tangents.size() * sizeof(vec3), &tangents[0], GL_STATIC_DRAW);
 
 	mat4 Projection = perspective(radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
 	// Camera matrix
@@ -189,6 +203,10 @@ int main()
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, Texture);
 		glUniform1i(TextureID, 0);
+		// 노멀맵 추가
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, NormalTexture);
+		glUniform1i(NormalTextureID, 1);
 
 		// VBO 생성??
 		// 1. 정점 버퍼 전달
@@ -227,6 +245,18 @@ int main()
 			(void*)0
 		);
 
+		// 4. 탄젠트 버퍼 전달
+		glEnableVertexAttribArray(3);
+		glBindBuffer(GL_ARRAY_BUFFER, tangentbuffer);
+		glVertexAttribPointer(
+			3,
+			3,
+			GL_FLOAT,
+			GL_FALSE,
+			0,
+			(void*)0
+		);
+
 		// 그리기 (드로우 콜)
 		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 
@@ -234,6 +264,7 @@ int main()
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);
+		glDisableVertexAttribArray(3);
 
 		// 렌더 버퍼 교체 (그린 결과를 디스플레이하는 명령)
 		glfwSwapBuffers(window);
@@ -245,6 +276,7 @@ int main()
 	glDeleteBuffers(1, &vertexbuffer);
 	glDeleteBuffers(1, &uvbuffer);
 	glDeleteBuffers(1, &normalbuffer);
+	glDeleteBuffers(1, &tangentbuffer);
 	// 프로그램 제거
 	glDeleteProgram(programID);
 	// 텍스처 제거

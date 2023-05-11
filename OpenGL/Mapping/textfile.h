@@ -24,3 +24,11 @@ bool loadOBJ(
 	vector<vec2> &out_uvs,
 	vector<vec3> &out_normals
 );
+
+// Tangent Space위해서 추가 (탄젠트만 구하는 함수)
+void getTangent(
+	vector<vec3> &vertices,
+	vector<vec2> &uvs,
+	vector<vec3> &normals,
+	vector<vec3> &tangents
+);
