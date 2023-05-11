@@ -2,13 +2,27 @@
 
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec2 texCoord;
+layout(location = 2) in vec3 normal;
 
-uniform mat4 MVP;
+// uniform mat4 MVP;
+uniform mat4 ProjMat, ViewMat, WorldMat;
+uniform vec3 eyePos;
 
 out vec2 v_texCoord;
+out vec3 v_normal, v_view;
 
 void main() 
 {
-	gl_Position = MVP * vec4(position, 1.0);
+	// 클립 공간 좌표
+	gl_Position = ProjMat * ViewMat * WorldMat * vec4(position, 1.0);
+
+	// uv 좌표
 	v_texCoord = texCoord;
+
+	// 월드 공간에서의 노멀
+	v_normal = normalize(transpose(inverse(mat3(WorldMat))) * normal);
+
+	// view vector 구하려고 worldPos 구하기
+	vec3 worldPos = (WorldMat * vec4(position, 1.0)).xyz;
+	v_view = normalize(eyePos - worldPos);
 }

@@ -110,7 +110,15 @@ int main()
 	// 쉐이더 파일이 붙여진 프로그램 핸들러
 	GLuint programID = LoadShaders("NormalMapping.vertexshader", "NormalMapping.fragmentshader");
 	// 행렬 핸들러
-	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
+	// GLuint MatrixID = glGetUniformLocation(programID, "MVP");
+	// - 분해 -
+	GLuint ProjMatID = glGetUniformLocation(programID, "ProjMat");
+	GLuint ViewMatID = glGetUniformLocation(programID, "ViewMat");
+	GLuint WorldMatID = glGetUniformLocation(programID, "WorldMat");
+	// eyePos 넘겨주기 : 얘는 카메라 원점이랑 같음
+	GLuint eyePosID = glGetUniformLocation(programID, "eyePos");
+	// lightDir 넘겨주기 : 퐁 라이팅 할려구
+	GLuint lightDirID = glGetUniformLocation(programID, "lightDir");
 
 	// 텍스처 로드
 	// GLuint Texture = loadDDS("texture/tree_texture.DDS");
@@ -136,6 +144,12 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
 	glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(vec2), &uvs[0], GL_STATIC_DRAW);
 
+	// Normal Buffer 생성
+	GLuint normalbuffer;
+	glGenBuffers(1, &normalbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(vec3), &normals[0], GL_STATIC_DRAW);
+
 	mat4 Projection = perspective(radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
 	// Camera matrix
 	mat4 View = lookAt(
@@ -143,6 +157,10 @@ int main()
 		vec3(0, 6, 0), // and looks at the origin
 		vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
 	);
+
+	mat4 World = mat4(1.0);
+	vec3 eyePos = vec3(13, 13, 10);
+	vec3 lightDir = vec3(6, 7, -5);
 
 	//--------------------------------------------------------------
 
@@ -156,10 +174,16 @@ int main()
 		glUseProgram(programID);
 
 		// MVP 행렬 구하기
-		glm::mat4 MVP = Projection * View * mat4(1.0);
+		// glm::mat4 MVP = Projection * View * mat4(1.0);
 
 		// 유니폼 행렬(MVP) 전달
-		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+		// glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+		// - 분해 - : 퐁 라이팅 하려구
+		glUniformMatrix4fv(ProjMatID, 1, GL_FALSE, &Projection[0][0]);
+		glUniformMatrix4fv(ViewMatID, 1, GL_FALSE, &View[0][0]);
+		glUniformMatrix4fv(WorldMatID, 1, GL_FALSE, &World[0][0]);
+		glUniform3fv(eyePosID, 1, &eyePos[0]);
+		glUniform3fv(lightDirID, 1, &lightDir[0]);
 
 		// 텍스처 바인드
 		glActiveTexture(GL_TEXTURE0);
@@ -167,7 +191,7 @@ int main()
 		glUniform1i(TextureID, 0);
 
 		// VBO 생성??
-		// 1rst attribute buffer : vertices
+		// 1. 정점 버퍼 전달
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 		glVertexAttribPointer(
@@ -179,7 +203,7 @@ int main()
 			(void*)0            // array buffer offset
 		);
 
-		// 2nd attribute buffer : UVs
+		// 2. uv 좌표 버퍼 전달
 		glEnableVertexAttribArray(1);
 		glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
 		glVertexAttribPointer(
@@ -191,12 +215,25 @@ int main()
 			(void*)0                          // array buffer offset
 		);
 
+		// 3. 노멀 버퍼 전달
+		glEnableVertexAttribArray(2);
+		glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+		glVertexAttribPointer(
+			2,
+			3,
+			GL_FLOAT,
+			GL_FALSE,
+			0,
+			(void*)0
+		);
+
 		// 그리기 (드로우 콜)
 		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 
 		// 활성화 했던 정점 애트리뷰트 비활성
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
+		glDisableVertexAttribArray(2);
 
 		// 렌더 버퍼 교체 (그린 결과를 디스플레이하는 명령)
 		glfwSwapBuffers(window);
@@ -207,6 +244,7 @@ int main()
 	// 버퍼 제거
 	glDeleteBuffers(1, &vertexbuffer);
 	glDeleteBuffers(1, &uvbuffer);
+	glDeleteBuffers(1, &normalbuffer);
 	// 프로그램 제거
 	glDeleteProgram(programID);
 	// 텍스처 제거
