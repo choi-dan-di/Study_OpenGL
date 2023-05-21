@@ -27,6 +27,9 @@
     <ClCompile Include="shader.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="object.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\DefaultShader.vert">
@@ -41,6 +44,12 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="shader.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="object.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
